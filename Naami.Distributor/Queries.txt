@@ -1,0 +1,9 @@
+- My Shares (limited to <ShareType>)
+- My Shares (grouped by <ShareType>)
+-> Total (Number), Actual Objects
+
+- Vaults per <ShareType>
+- Single Vault
+
+- Distributions for <ShareType>
+- 

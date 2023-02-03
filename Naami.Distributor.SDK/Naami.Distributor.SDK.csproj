@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Naami.SuiNet.Extensions" Version="0.0.11" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Models\Share\Structs" />
+    </ItemGroup>
+
+</Project>

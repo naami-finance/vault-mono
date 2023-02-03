@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naami.Distributor", "Naami.Distributor\Naami.Distributor.csproj", "{B7BD6F52-3187-4367-88BD-39118CCA56C3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naami.Distributor.SDK", "Naami.Distributor.SDK\Naami.Distributor.SDK.csproj", "{A20D3872-33FD-4133-93AF-17AB3BFF5BF3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naami.Distributor.GraphQL", "Naami.Distributor.GraphQL\Naami.Distributor.GraphQL.csproj", "{637E59F1-B139-491F-B8A9-AC3FB364C09F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naami.Distributor.Data", "Naami.Distributor.Data\Naami.Distributor.Data.csproj", "{3A804244-A2FE-4965-ADB6-8FC8296C6D9F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naami.Distributor.Indexer", "Naami.Distributor.Indexer\Naami.Distributor.Indexer.csproj", "{961F0013-8353-42EC-B24F-93DEBB339BBA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naami.Distributor.Indexer.Tests", "Naami.Distributor.Indexer.Tests\Naami.Distributor.Indexer.Tests.csproj", "{566A5EBB-E3A6-494A-BAE1-8C89A9741C6D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B7BD6F52-3187-4367-88BD-39118CCA56C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7BD6F52-3187-4367-88BD-39118CCA56C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7BD6F52-3187-4367-88BD-39118CCA56C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7BD6F52-3187-4367-88BD-39118CCA56C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A20D3872-33FD-4133-93AF-17AB3BFF5BF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A20D3872-33FD-4133-93AF-17AB3BFF5BF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A20D3872-33FD-4133-93AF-17AB3BFF5BF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A20D3872-33FD-4133-93AF-17AB3BFF5BF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{637E59F1-B139-491F-B8A9-AC3FB364C09F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{637E59F1-B139-491F-B8A9-AC3FB364C09F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{637E59F1-B139-491F-B8A9-AC3FB364C09F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{637E59F1-B139-491F-B8A9-AC3FB364C09F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A804244-A2FE-4965-ADB6-8FC8296C6D9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A804244-A2FE-4965-ADB6-8FC8296C6D9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A804244-A2FE-4965-ADB6-8FC8296C6D9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A804244-A2FE-4965-ADB6-8FC8296C6D9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{961F0013-8353-42EC-B24F-93DEBB339BBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{961F0013-8353-42EC-B24F-93DEBB339BBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{961F0013-8353-42EC-B24F-93DEBB339BBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{961F0013-8353-42EC-B24F-93DEBB339BBA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{566A5EBB-E3A6-494A-BAE1-8C89A9741C6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{566A5EBB-E3A6-494A-BAE1-8C89A9741C6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{566A5EBB-E3A6-494A-BAE1-8C89A9741C6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{566A5EBB-E3A6-494A-BAE1-8C89A9741C6D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
