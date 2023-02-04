@@ -12,31 +12,56 @@ public class IndexSharesJob
 {
     private readonly IEventApi _eventApi;
     private readonly VaultContext _vaultContext;
+    private readonly ApplicationConfiguration _applicationConfiguration;
 
-    public IndexSharesJob(IEventApi eventApi, VaultContext vaultContext)
+    public IndexSharesJob(IEventApi eventApi, VaultContext vaultContext,
+        ApplicationConfiguration applicationConfiguration)
     {
         _eventApi = eventApi;
         _vaultContext = vaultContext;
+        _applicationConfiguration = applicationConfiguration;
     }
 
     public async Task RunAsync()
     {
-        // TODO: application configuration
-        const string EventType = "0x6a16517208e903f86a3e52a56a336865994e3359::registry::ShareCreated";
-
-        var lastEventId = (IHasNextEntry?)_vaultContext.ShareTypes
+        var lastIndexedShareType = _vaultContext.ShareTypes
             .FirstOrDefault(x => x.NextEventSeq.HasValue && !string.IsNullOrEmpty(x.NextTxDigest));
 
-        var eventsBatchStream = lastEventId == null
-            ? _eventApi.GetEventStream(new MoveEventEventQuery(EventType))
-            : _eventApi.GetEventStream(new MoveEventEventQuery(EventType), new SuiNet.Types.EventId(
-                lastEventId.NextTxDigest!,
-                (long)lastEventId.NextEventSeq!.Value)
+        var eventsBatchStream = lastIndexedShareType == null
+            ? _eventApi.GetEventStream(new MoveEventEventQuery(_applicationConfiguration.CreatedShareEventType))
+            : _eventApi.GetEventStream(new MoveEventEventQuery(_applicationConfiguration.CreatedShareEventType),
+                new SuiNet.Types.EventId(
+                    lastIndexedShareType.NextTxDigest!,
+                    (long)lastIndexedShareType.NextEventSeq!.Value + 1)
             );
 
-
+        var run = 0;
         await foreach (var eventsBatch in eventsBatchStream)
         {
+            var firstElement = eventsBatch.First();
+            
+            if (run == 0 && lastIndexedShareType != null)
+            {
+                // update lastEventId
+                lastIndexedShareType.NextTxDigest = firstElement.Id.TxDigest;
+                lastIndexedShareType.NextEventSeq = (ulong)firstElement.Id.EventSeq;
+                _vaultContext.ShareTypes.Update(lastIndexedShareType);
+            }
+
+
+            // second page, first item -> update previous page last items next cursor
+            if (run != 0)
+            {
+                var previousShareType =
+                    _vaultContext.ShareTypes.FirstOrDefault(x => string.IsNullOrEmpty(x.NextTxDigest));
+                if (previousShareType != null)
+                {
+                    previousShareType.NextTxDigest = firstElement.Id.TxDigest;
+                    previousShareType.NextEventSeq = (ulong)firstElement.Id.EventSeq;
+                    _vaultContext.ShareTypes.Update(previousShareType);
+                }
+            }
+
             var shareTypes = eventsBatch.Select((ev, eventIndex) =>
             {
                 var nextId = eventIndex + 1 >= eventsBatch.Length
@@ -64,6 +89,8 @@ public class IndexSharesJob
 
             await _vaultContext.ShareTypes.AddRangeAsync(shareTypes.ToArray());
             await _vaultContext.SaveChangesAsync();
+
+            run++;
         }
     }
 }

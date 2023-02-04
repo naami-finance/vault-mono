@@ -4,13 +4,26 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.EntityFrameworkCore;
 using Naami.Distributor.Data;
+using Naami.Distributor.Indexer;
+using Naami.Distributor.Indexer.Jobs;
+using Naami.SuiNet.Apis.Event;
+using Naami.SuiNet.JsonRpc;
 
-Console.WriteLine("Hello, World!");
 
+var configuration = LoadConfiguration();
 var hangfireConnectionString =
-    "Server=127.0.0.1;Port=5432;Database=hangfire_distributor;User Id=postgres;Password=secret;";
+    $"Server={configuration.PostgreHost};" +
+    $"Port={configuration.PostgrePort};" +
+    $"Database={configuration.HangfireDatabase};" +
+    $"User Id={configuration.PostgreUsername};" +
+    $"Password={configuration.PostgrePassword};";
+
 var efConnectionString =
-    "Server=127.0.0.1;Port=5432;Database=vault;User Id=postgres;Password=secret;";
+    $"Server={configuration.PostgreHost};" +
+    $"Port={configuration.PostgrePort};" +
+    $"Database={configuration.IndexingDatabase};" +
+    $"User Id={configuration.PostgreUsername};" +
+    $"Password={configuration.PostgrePassword};";
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +31,14 @@ builder.Services
     .AddControllersWithViews();
 
 builder.Services
-    .AddHangfire(c => c.UsePostgreSqlStorage(hangfireConnectionString))
+    .AddSingleton(configuration)
+    .AddSingleton<IJsonRpcClient, JsonRpcClient>(_ => new JsonRpcClient(configuration.FullNodeRpcUrl))
+    .AddTransient<IEventApi, EventApi>();
+
+builder.Services
+    .AddHangfire(c =>
+        c.UsePostgreSqlStorage(hangfireConnectionString)
+    )
     .AddHangfireServer();
 
 builder.Services.AddDbContext<VaultContext>(
@@ -26,7 +46,12 @@ builder.Services.AddDbContext<VaultContext>(
 );
 
 
+
 var app = builder.Build();
+
+// update db schema (put to cicd later)
+var ctx = app.Services.GetService<VaultContext>();
+await ctx.Database.MigrateAsync();
 
 app.UseStaticFiles();
 app.UseHangfireDashboard();
@@ -38,4 +63,22 @@ app.UseEndpoints(e =>
     e.MapHangfireDashboard();
 });
 
+
+RecurringJob.AddOrUpdate<IndexSharesJob>("Index Shares", job => job.RunAsync(), Cron.Hourly());
+
 app.Run();
+
+ApplicationConfiguration LoadConfiguration()
+{
+    var currentEnvironment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+    var builder = new ConfigurationBuilder()
+        .AddJsonFile($"appsettings.json")
+        .AddJsonFile($"appsettings.{currentEnvironment}.json", true)
+        .AddEnvironmentVariables();
+
+    var configurationRoot = builder.Build();
+    var configuration = new ApplicationConfiguration();
+    configurationRoot.Bind(configuration);
+
+    return configuration;
+}

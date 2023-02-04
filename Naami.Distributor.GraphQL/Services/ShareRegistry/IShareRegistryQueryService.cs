@@ -1,6 +1,4 @@
-﻿using Naami.Distributor.GraphQL.Services.Vault;
-
-namespace Naami.Distributor.GraphQL.Services.ShareRegistry;
+﻿namespace Naami.Distributor.GraphQL.Services.ShareRegistry;
 
 public interface IShareRegistryQueryService
 {
