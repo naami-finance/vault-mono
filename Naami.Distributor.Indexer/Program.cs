@@ -6,7 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using Naami.Distributor.Data;
 using Naami.Distributor.Indexer;
 using Naami.Distributor.Indexer.Jobs;
+using Naami.Scheduler.Business;
 using Naami.SuiNet.Apis.Event;
+using Naami.SuiNet.Apis.Read;
 using Naami.SuiNet.JsonRpc;
 
 
@@ -33,7 +35,8 @@ builder.Services
 builder.Services
     .AddSingleton(configuration)
     .AddSingleton<IJsonRpcClient, JsonRpcClient>(_ => new JsonRpcClient(configuration.FullNodeRpcUrl))
-    .AddTransient<IEventApi, EventApi>();
+    .AddTransient<IEventApi, EventApi>()
+    .AddTransient<IReadApi, ReadApi>();
 
 builder.Services
     .AddHangfire(c =>
@@ -65,6 +68,18 @@ app.UseEndpoints(e =>
 
 
 RecurringJob.AddOrUpdate<IndexSharesJob>("Index Shares", job => job.RunAsync(), Cron.Hourly());
+RecurringJob.AddOrUpdate<IndexDistributionsJob>("Index Distributions", job => job.RunAsync(), Cron.Hourly());
+RecurringJob.AddOrUpdate<ClearIndexedDataJob>("Clear Indexed Data", job => job.RunAsync(), Cron.Yearly());
+RecurringJob.AddOrUpdate<AddSuiCoinJob>(
+    "Add SUI Coin",
+    job => job.RunAsync(),
+    "0 0 1 1 *"
+);
+RecurringJob.AddOrUpdate<CoinTypeIndexerJob>(
+    "Index Coin Types",
+    job => job.RunAsync(),
+    "30 */12 * * *"
+);
 
 app.Run();
 

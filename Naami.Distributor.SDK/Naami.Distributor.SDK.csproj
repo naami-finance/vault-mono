@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Naami.SuiNet.Extensions" Version="0.0.11" />
+      <PackageReference Include="Naami.SuiNet.Extensions" Version="0.0.16" />
     </ItemGroup>
 
     <ItemGroup>

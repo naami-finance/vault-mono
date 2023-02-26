@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Naami.Distributor.Data;
+using Naami.Distributor.SDK.Models.Distributor.Events;
 using Naami.Distributor.SDK.Models.Share.Events;
 using Naami.SuiNet.Apis.Event;
 using Naami.SuiNet.Apis.Event.Query;
@@ -9,13 +10,13 @@ using EventId = Naami.SuiNet.Types.EventId;
 
 namespace Naami.Distributor.Indexer.Jobs;
 
-public class IndexSharesJob
+public class IndexDistributionsJob
 {
     private readonly IEventApi _eventApi;
     private readonly VaultContext _vaultContext;
     private readonly ApplicationConfiguration _applicationConfiguration;
 
-    public IndexSharesJob(IEventApi eventApi, VaultContext vaultContext,
+    public IndexDistributionsJob(IEventApi eventApi, VaultContext vaultContext,
         ApplicationConfiguration applicationConfiguration)
     {
         _eventApi = eventApi;
@@ -26,64 +27,60 @@ public class IndexSharesJob
     public async Task RunAsync()
     {
         var eventSnapshot = _vaultContext.EventSourcingSnapshots.FirstOrDefault() ?? new EventSourcingSnapshot();
-        var lastEventId = eventSnapshot.ShareTypeEventSeq.HasValue &&
-                          !string.IsNullOrEmpty(eventSnapshot.ShareTypeTxDigest)
-            ? new EventId(eventSnapshot.ShareTypeTxDigest, (long)eventSnapshot.ShareTypeEventSeq + 1) : null;
-        
-        
-        var eventType = $"{_applicationConfiguration.SharesPackageId}::registry::ShareCreated";
+        var lastEventId = eventSnapshot.DistributionEventSeq.HasValue &&
+                          !string.IsNullOrEmpty(eventSnapshot.DistributionTxDigest)
+            ? new EventId(eventSnapshot.DistributionTxDigest, (long)eventSnapshot.DistributionEventSeq + 1)
+            : null;
+
+        var eventType = $"{_applicationConfiguration.VaultPackageId}::distributor_events::DistributionCreated";
         var eventsBatchStream = lastEventId == null
             ? _eventApi.GetEventStream(new MoveEventEventQuery(eventType))
             : _eventApi.GetEventStream(new MoveEventEventQuery(eventType),
                 lastEventId
             );
 
-       
+
         await foreach (var eventsBatch in eventsBatchStream)
         {
-            var shareTypes = eventsBatch.Select((ev, eventIndex) =>
+            var distributions = eventsBatch.Select((ev, eventIndex) =>
             {
-                var nextId = eventIndex + 1 >= eventsBatch.Length
-                    ? null
-                    : eventsBatch[eventIndex + 1].Id;
+                var distributionCreatedEvent = ev.Event.MoveEvent!.Fields.FromObjectDictionary<DistributionCreated>();
 
-                var shareCreatedEvent = ev.Event.MoveEvent!.Fields.FromObjectDictionary<ShareCreated>();
-
-                return new ShareType
+                return new Distribution
                 {
-                    Name = Encoding.ASCII.GetString(shareCreatedEvent.Name),
-                    Symbol = Encoding.ASCII.GetString(shareCreatedEvent.Symbol),
-                    TotalSupply = shareCreatedEvent.TotalSupply,
-                    MetadataObjectId = shareCreatedEvent.MetadataId,
-                    RegistryObjectId = shareCreatedEvent.RegistryId,
-                    ObjectType = Encoding.ASCII.GetString(shareCreatedEvent.Type),
+                    CoinType = Encoding.ASCII.GetString(distributionCreatedEvent.CoinType),
+                    ShareType = Encoding.ASCII.GetString(distributionCreatedEvent.ShareType),
+                    Id = distributionCreatedEvent.DistributionId,
+                    InitialAmount = distributionCreatedEvent.Amount,
+                    RemainingAmount = distributionCreatedEvent.Amount,
+                    CreatedAt = distributionCreatedEvent.Timestamp,
                 };
-            }).Where(x => _vaultContext.ShareTypes.All(s => s.ObjectType != x.ObjectType));
+            }).Where(x => _vaultContext.Distributions.All(s => s.Id != x.Id));
 
 
-            await _vaultContext.ShareTypes.AddRangeAsync(shareTypes.ToArray());
-            
+            await _vaultContext.Distributions.AddRangeAsync(distributions.ToArray());
+
             if (eventsBatch.Any())
             {
                 var lastEvent = eventsBatch.Last();
                 if (_vaultContext.EventSourcingSnapshots.Any())
                 {
                     var snapshot = _vaultContext.EventSourcingSnapshots.Single();
-                    snapshot.ShareTypeEventSeq = (ulong)lastEvent.Id.EventSeq;
-                    snapshot.ShareTypeTxDigest = lastEvent.Id.TxDigest;
+                    snapshot.DistributionEventSeq = (ulong)lastEvent.Id.EventSeq;
+                    snapshot.DistributionTxDigest = lastEvent.Id.TxDigest;
                     _vaultContext.Update(snapshot);
                 }
                 else
                 {
                     var snapshot = new EventSourcingSnapshot
                     {
-                        ShareTypeEventSeq = (ulong)lastEvent.Id.EventSeq,
-                        ShareTypeTxDigest = lastEvent.Id.TxDigest
+                        DistributionEventSeq = (ulong)lastEvent.Id.EventSeq,
+                        DistributionTxDigest = lastEvent.Id.TxDigest
                     };
                     await _vaultContext.EventSourcingSnapshots.AddAsync(snapshot);
                 }
             }
-            
+
             await _vaultContext.SaveChangesAsync();
         }
     }

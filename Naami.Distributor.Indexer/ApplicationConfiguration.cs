@@ -8,6 +8,9 @@ public class ApplicationConfiguration
     public string PostgrePassword { get; set; }
     public string HangfireDatabase { get; set; }
     public string IndexingDatabase { get; set; }
-    public string CreatedShareEventType { get; set; }
     public string FullNodeRpcUrl { get; set; }
+
+
+    public string SharesPackageId { get; set; }
+    public string VaultPackageId { get; set; }
 }

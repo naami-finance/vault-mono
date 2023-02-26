@@ -3,7 +3,10 @@
 using Microsoft.EntityFrameworkCore;
 using Naami.Distributor.Data;
 using Naami.Distributor.GraphQL;
+using Naami.Distributor.GraphQL.Services.CoinType;
+using Naami.Distributor.GraphQL.Services.Distribution;
 using Naami.Distributor.GraphQL.Services.ShareType;
+using Naami.SuiNet.Apis.Governance;
 using Naami.SuiNet.Apis.Read;
 using Naami.SuiNet.JsonRpc;
 
@@ -13,7 +16,10 @@ var configuration = LoadConfiguration();
 builder.Services
     .AddSingleton<IJsonRpcClient>(new JsonRpcClient(configuration.RpcNodeUrl))
     .AddSingleton<IReadApi, ReadApi>()
+    .AddSingleton<IGovernanceApi, GovernanceApi>()
     .AddTransient<IShareTypeQueryService, ShareTypeQueryService>()
+    .AddTransient<IDistributionQueryService, DistributionQueryService>()
+    .AddTransient<ICoinTypeQueryService, CoinTypeQueryService>()
     ;
 
 builder.Services

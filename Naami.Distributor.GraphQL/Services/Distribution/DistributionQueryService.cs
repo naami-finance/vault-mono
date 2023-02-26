@@ -1,13 +1,32 @@
-﻿namespace Naami.Distributor.GraphQL.Services.Distribution;
+﻿using Naami.Distributor.Data;
 
-public record Distribution(string Id, ulong Balance, string ShareType, string CoinType);
+namespace Naami.Distributor.GraphQL.Services.Distribution;
 
-// Indexing is key here as well as there is no way to query all Distributions on-chain (easily)
-// unless you want to event-source everything everytime the service is being start-up
-
-public record DistributionQueryOptions(string? ShareType = null, string? CoinType = null);
-
-public interface IDistributionQueryService
+public class DistributionQueryService : IDistributionQueryService
 {
-    public Task<Distribution[]> QueryDistributions(DistributionQueryOptions queryOptions);
+    private readonly VaultContext _vaultContext;
+
+    public DistributionQueryService(VaultContext vaultContext)
+    {
+        _vaultContext = vaultContext;
+    }
+
+    public IEnumerable<Distribution> QueryDistributions(DistributionQueryOptions queryOptions)
+    {
+        var distributions = _vaultContext.Distributions.AsQueryable();
+
+        if (!string.IsNullOrEmpty(queryOptions.CoinType))
+            distributions = distributions.Where(x => x.CoinType == queryOptions.CoinType);
+
+        if (!string.IsNullOrEmpty(queryOptions.ShareType))
+            distributions = distributions.Where(x => x.ShareType == queryOptions.ShareType);
+
+        if (queryOptions.EpochGt.HasValue)
+            distributions = distributions.Where(x => x.CreatedAt > queryOptions.EpochGt.Value);
+
+        if (queryOptions.EpochLt.HasValue)
+            distributions = distributions.Where(x => x.CreatedAt > queryOptions.EpochLt.Value);
+
+        return distributions.AsEnumerable().Select(DistributionMapperExtensions.ToServiceObject).ToArray();
+    }
 }

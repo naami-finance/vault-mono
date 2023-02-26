@@ -13,7 +13,9 @@ namespace Naami.Distributor.Indexer.Tests;
 
 public class Tests
 {
-    private const string ShareType = "0x6a16517208e903f86a3e52a56a336865994e3359::registry::ShareCreated";
+
+    private const string ShareCreatedEventType = $"{SharePackageId}::registry::ShareCreated";
+    private const string SharePackageId = "0x6a16517208e903f86a3e52a56a336865994e3359";
 
     private IEventApi _eventApiSubstitute;
     private VaultContext _dbContext;
@@ -26,7 +28,7 @@ public class Tests
         _dbContext = Substitute.For<VaultContext>();
         _sut = new IndexSharesJob(_eventApiSubstitute, _dbContext, new ApplicationConfiguration
         {
-            CreatedShareEventType = ShareType
+            SharesPackageId = SharePackageId
         });
     }
 
@@ -78,7 +80,6 @@ public class Tests
             ""
         ));
 
-
         var existingEvent = CreateSuiEvent(new ShareCreated(
             Encoding.ASCII.GetBytes(existingType),
             Encoding.ASCII.GetBytes("TST"),
@@ -114,110 +115,13 @@ public class Tests
             .AddRangeAsync(Arg.Is<ShareType[]>(c => c.Length == 1 && c.First().ObjectType == newType));
     }
 
-    [Test]
-    public async Task Ensure_ShareTypes_Are_Linked_Through_EventId_On_Same_Page()
-    {
-        var firstEvent = CreateSuiEvent(new ShareCreated(
-            Encoding.ASCII.GetBytes("TYPE1"),
-            Encoding.ASCII.GetBytes("TST"),
-            Encoding.ASCII.GetBytes("TESTSHARE"),
-            1234,
-            "",
-            ""
-        ));
-        var firstEnvelope = new SuiEventEnvelope(0, new EventId("hello", 1), firstEvent);
-
-
-        var secondEvent = CreateSuiEvent(new ShareCreated(
-            Encoding.ASCII.GetBytes("TYPE2"),
-            Encoding.ASCII.GetBytes("TST"),
-            Encoding.ASCII.GetBytes("TESTSHARE"),
-            1234,
-            "",
-            ""
-        ));
-        var secondTxDigest = "world";
-        var secondEventSeq = 4;
-        var secondEnvelope = new SuiEventEnvelope(0, new EventId(secondTxDigest, secondEventSeq), secondEvent);
-        var page = new EventPage(new[] { firstEnvelope, secondEnvelope }, null);
-
-        _eventApiSubstitute
-            .GetEvents(Arg.Any<IEventQuery>(), Arg.Any<uint>(), Arg.Any<bool>())
-            .Returns(Task.Run(() => page));
-        
-        var fakeDbSet = Array.Empty<ShareType>().AsFakeDbSet();
-        _dbContext.ShareTypes = fakeDbSet;
-
-        await _sut.RunAsync();
-
-        await _dbContext
-            .ShareTypes
-            .Received(1)
-            .AddRangeAsync(Arg.Is<ShareType[]>(c => 
-                c.First().NextTxDigest == secondTxDigest &&
-                c.First().NextEventSeq == (ulong)secondEventSeq));
-
-        // consider multiple pages (last item from previous MUST be linked with first item from new page)
-    }
-
-    [Test]
-    public async Task Ensure_ShareTypes_Are_Linked_Through_EventId_On_Multiple_Pages()
-    {
-        
-        var secondTxDigest = "world";
-        var secondEventSeq = 4;
-        
-        var firstEvent = CreateSuiEvent(new ShareCreated(
-            Encoding.ASCII.GetBytes("TYPE1"),
-            Encoding.ASCII.GetBytes("TST"),
-            Encoding.ASCII.GetBytes("TESTSHARE"),
-            1234,
-            "",
-            ""
-        ));
-        var firstEnvelope = new SuiEventEnvelope(0, new EventId("hello", 1), firstEvent);
-        var firstPage = new EventPage(new[] { firstEnvelope }, new EventId(secondTxDigest, secondEventSeq));
-
-
-        var secondEvent = CreateSuiEvent(new ShareCreated(
-            Encoding.ASCII.GetBytes("TYPE2"),
-            Encoding.ASCII.GetBytes("TST"),
-            Encoding.ASCII.GetBytes("TESTSHARE"),
-            1234,
-            "",
-            ""
-        ));
-        var secondEnvelope = new SuiEventEnvelope(0, new EventId(secondTxDigest, secondEventSeq), secondEvent);
-        var secondPage = new EventPage(new[] { secondEnvelope }, null);
-
-        _eventApiSubstitute
-            .GetEvents(Arg.Any<IEventQuery>(), Arg.Any<uint>(), Arg.Any<bool>())
-            .Returns(Task.Run(() => firstPage));
-        
-        _eventApiSubstitute
-            .GetEvents(Arg.Any<IEventQuery>(), Arg.Is<EventId>(c => c.TxDigest == secondTxDigest), Arg.Any<uint>(), Arg.Any<bool>())
-            .Returns(Task.Run(() => secondPage));
-        
-        var fakeDbSet = new[]{ new ShareType()}.AsFakeDbSet();
-        _dbContext.ShareTypes = fakeDbSet;
-
-        await _sut.RunAsync();
-
-        _dbContext
-            .ShareTypes
-            .Received(1)
-            .Update(Arg.Is<ShareType>(c => 
-                c.NextTxDigest == secondTxDigest &&
-                c.NextEventSeq == (ulong)secondEventSeq));
-    }
-
     private SuiEvent CreateSuiEvent(ShareCreated shareCreatedEvent)
     {
         var moveEvent = new MoveEvent(
             "",
             "",
             Utils.TestingSignerAddress,
-            ShareType,
+            ShareCreatedEventType,
             Array.Empty<byte>()
         )
         {
