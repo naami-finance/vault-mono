@@ -37,6 +37,16 @@ builder.Services.AddDbContext<VaultContext>(
     o => o.UseNpgsql(efConnectionString)
 );
 
+var allowedHosts = new[]
+{
+    "http://localhost:3000", "https://localhost:3000"
+};
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(b => { b.WithOrigins(allowedHosts).AllowAnyHeader().AllowAnyMethod(); });
+});
+
 var app = builder.Build();
 app.MapGraphQL(PathString.Empty);
 app.Run();
