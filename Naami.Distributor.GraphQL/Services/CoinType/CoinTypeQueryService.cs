@@ -13,6 +13,7 @@ public class CoinTypeQueryService : ICoinTypeQueryService, IAsyncDisposable
     {
         _vaultContext = vaultContext;
     }
+
     public IEnumerable<Api.Services.CoinType.CoinType> GetCoinTypesByIds(string[] ids)
     {
         return _vaultContext.CoinTypes.AsEnumerable()

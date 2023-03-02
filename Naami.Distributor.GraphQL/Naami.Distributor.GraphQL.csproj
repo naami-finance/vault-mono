@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
@@ -20,6 +20,5 @@
     <ItemGroup>
       <ProjectReference Include="..\Naami.Distributor.Data\Naami.Distributor.Data.csproj" />
       <ProjectReference Include="..\Naami.Distributor.SDK\Naami.Distributor.SDK.csproj" />
-    </ItemGroup>
-    
+    </ItemGroup>    
 </Project>

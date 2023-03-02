@@ -17,9 +17,9 @@ builder.Services
     .AddSingleton<IJsonRpcClient>(new JsonRpcClient(configuration.RpcNodeUrl))
     .AddSingleton<IReadApi, ReadApi>()
     .AddSingleton<IGovernanceApi, GovernanceApi>()
-    .AddTransient<IShareTypeQueryService, ShareTypeQueryService>()
-    .AddTransient<IDistributionQueryService, DistributionQueryService>()
-    .AddTransient<ICoinTypeQueryService, CoinTypeQueryService>()
+    .AddTransient<IShareTypeQueryService, ShareTypeMockQueryService>()
+    .AddTransient<IDistributionQueryService, DistributionMockQueryService>()
+    .AddTransient<ICoinTypeQueryService, CoinTypeMockQueryService>()
     ;
 
 builder.Services
