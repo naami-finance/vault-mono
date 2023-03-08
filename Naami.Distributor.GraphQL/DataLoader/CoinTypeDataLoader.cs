@@ -1,5 +1,4 @@
-﻿using Naami.Api.Services.CoinType;
-using Naami.Distributor.GraphQL.Services.CoinType;
+﻿using Naami.Distributor.GraphQL.Services.CoinType;
 
 namespace Naami.Distributor.GraphQL.DataLoader;
 

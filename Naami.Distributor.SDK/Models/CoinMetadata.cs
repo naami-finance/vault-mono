@@ -2,7 +2,7 @@ using System.Runtime.Serialization;
 using Naami.SuiNet.Extensions.ModuleTypes.Sui;
 using Uid = Naami.SuiNet.SuiTypes.Uid;
 
-namespace Naami.Sdk.Objects;
+namespace Naami.Distributor.SDK.Models;
 
 [DataContract]
 public record CoinMetadata(

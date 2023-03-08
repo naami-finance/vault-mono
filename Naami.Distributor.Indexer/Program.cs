@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Naami.Distributor.Data;
 using Naami.Distributor.Indexer;
 using Naami.Distributor.Indexer.Jobs;
-using Naami.Scheduler.Business;
 using Naami.SuiNet.Apis.Event;
 using Naami.SuiNet.Apis.Read;
 using Naami.SuiNet.JsonRpc;
@@ -54,7 +53,7 @@ var app = builder.Build();
 
 // update db schema (put to cicd later)
 var ctx = app.Services.GetService<VaultContext>();
-await ctx.Database.MigrateAsync();
+await ctx!.Database.MigrateAsync();
 
 app.UseStaticFiles();
 app.UseHangfireDashboard();
@@ -81,7 +80,7 @@ RecurringJob.AddOrUpdate<CoinTypeIndexerJob>(
     "30 */12 * * *"
 );
 
-app.Run();
+app.Run("http://*:80");
 
 ApplicationConfiguration LoadConfiguration()
 {

@@ -1,4 +1,4 @@
-﻿namespace Naami.Api.Services.CoinType;
+﻿namespace Naami.Distributor.GraphQL.Services.CoinType;
 
 public record CoinType(
     string Id,

@@ -1,10 +1,11 @@
 ﻿using Naami.Distributor.Data;
+using Naami.Distributor.SDK;
 using Naami.SuiNet.Apis.Event;
 using Naami.SuiNet.Apis.Event.Query;
 using Naami.SuiNet.Apis.Read;
 using Naami.SuiNet.Extensions.ApiStreams;
 using Naami.SuiNet.Types;
-using CoinMetadata = Naami.Sdk.Objects.CoinMetadata;
+using CoinMetadata = Naami.Distributor.SDK.Models.CoinMetadata;
 using EventId = Naami.SuiNet.Types.EventId;
 
 namespace Naami.Distributor.Indexer.Jobs;
@@ -51,56 +52,60 @@ public class CoinTypeIndexerJob
                 .Select(x => x.NewObject!.ObjectId));
 
             lastEventId = suiEventEnvelopes.Last().Id;
-        }
 
-        var coinTypes = new List<CoinType>();
-        foreach (var objectIds in metadataIds.Chunk(100))
-        {
-            var objects = await _readApi.GetObjects<CoinMetadata>(objectIds);
-            var metadataObjects =
-                objects
-                    .Where(x => x.ObjectStatus == ObjectStatus.Exists)
-                    .Select(x => (
-                        new SuiObjectType(x.ExistsResult!.Data.Type!),
-                        x.ExistsResult!.Data.Fields!
-                    ));
 
-            coinTypes.AddRange(metadataObjects.Select(x => new CoinType
+            var coinTypes = new List<CoinType>();
+            foreach (var objectIds in metadataIds.Chunk(100))
             {
-                Decimals = x.Item2.Decimals,
-                Description = x.Item2.Description,
-                Name = x.Item2.Name,
-                IconUrl = x.Item2.IconUrl.HasValue ? x.Item2.IconUrl.Value : string.Empty,
-                Symbol = x.Item2.Symbol,
-                ObjectType = x.Item1.Struct.GenericTypes[0],
-                Module = x.Item1.Struct.GenericTypes[0].Module,
-                Struct = x.Item1.Struct.GenericTypes[0].Struct,
-                PackageId = x.Item1.Struct.GenericTypes[0].Package,
-            }));
-        }
+                var objects = await _readApi.GetObjects<CoinMetadata>(objectIds);
+                var metadataObjects =
+                    objects
+                        .Where(x => x.ObjectStatus == ObjectStatus.Exists)
+                        .Select(x => (
+                            new SuiObjectType(x.ExistsResult!.Data.Type!),
+                            x.ExistsResult!.Data.Fields!
+                        ));
 
-        var existingTypes = _vaultContext.CoinTypes.Select(x => x.ObjectType).ToArray();
-        var newTypes = coinTypes.Where(x => existingTypes.All(e => e != x.ObjectType));
+                coinTypes.AddRange(metadataObjects.Select(x => new CoinType
+                {
+                    Decimals = x.Item2.Decimals,
+                    Description = x.Item2.Description,
+                    Name = x.Item2.Name,
+                    IconUrl = x.Item2.IconUrl.HasValue ? x.Item2.IconUrl.Value : string.Empty,
+                    Symbol = x.Item2.Symbol,
+                    ObjectType = x.Item1.Struct.GenericTypes[0],
+                    Module = x.Item1.Struct.GenericTypes[0].Module,
+                    Struct = x.Item1.Struct.GenericTypes[0].Struct,
+                    PackageId = x.Item1.Struct.GenericTypes[0].Package.AsFormattedAddress(),
+                }));
+            }
 
-        await _vaultContext.CoinTypes.AddRangeAsync(newTypes);
-        
-        if (_vaultContext.EventSourcingSnapshots.Any())
-        {
-            var snapshot = _vaultContext.EventSourcingSnapshots.Single();
-            snapshot.CoinTypeEventSeq = (ulong)lastEventId.EventSeq;
-            snapshot.CoinTypeTxDigest = lastEventId.TxDigest;
-            _vaultContext.Update(snapshot);
-        }
-        else
-        {
-            var snapshot = new EventSourcingSnapshot()
+            if (coinTypes.Any())
             {
-                CoinTypeEventSeq = (ulong)lastEventId.EventSeq,
-                CoinTypeTxDigest = lastEventId.TxDigest
-            };
-            await _vaultContext.EventSourcingSnapshots.AddAsync(snapshot);
+                var existingTypes = _vaultContext.CoinTypes.Select(x => x.ObjectType).ToArray();
+                var newTypes = coinTypes.Where(x => existingTypes.All(e => e != x.ObjectType));
+
+                await _vaultContext.CoinTypes.AddRangeAsync(newTypes);
+            }
+
+            if (_vaultContext.EventSourcingSnapshots.Any())
+            {
+                var snapshot = _vaultContext.EventSourcingSnapshots.Single();
+                snapshot.CoinTypeEventSeq = (ulong)lastEventId.EventSeq;
+                snapshot.CoinTypeTxDigest = lastEventId.TxDigest;
+                _vaultContext.Update(snapshot);
+            }
+            else
+            {
+                var snapshot = new EventSourcingSnapshot()
+                {
+                    CoinTypeEventSeq = (ulong)lastEventId.EventSeq,
+                    CoinTypeTxDigest = lastEventId.TxDigest
+                };
+                await _vaultContext.EventSourcingSnapshots.AddAsync(snapshot);
+            }
+
+            await _vaultContext.SaveChangesAsync();
         }
-        
-        await _vaultContext.SaveChangesAsync();
     }
 }

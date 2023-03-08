@@ -1,17 +1,15 @@
-﻿using Naami.Distributor.GraphQL.Services.Distribution;
+﻿using Naami.Distributor.GraphQL.Services.Aggregator;
+using Naami.Distributor.GraphQL.Services.Distribution;
 using Naami.SuiNet.Apis.Governance;
-using Naami.SuiNet.Apis.Read;
 
 namespace Naami.Distributor.GraphQL.Schema.Vault;
 
 public record Vault(string Name, string ShareType)
 {
-    public const byte MergingEpochDuration = 10;
-    
-    public Task<Balance[]> UserClaimableBalance()
-    {
-        return null;
-    }
+    public Task<Balance[]> UserClaimableBalance(
+        [Service] IDistributionQueryService distributionQueryService,
+        [Service] IGovernanceApi governanceApi
+    ) => TotalClaimableBalance(distributionQueryService, governanceApi);
 
     public async Task<Balance[]> TotalClaimableBalance(
         [Service] IDistributionQueryService distributionQueryService,
@@ -29,23 +27,19 @@ public record Vault(string Name, string ShareType)
     }
 
     public async Task<Balance[]> TotalLockedBalance(
-        [Service] IDistributionQueryService distributionQueryService,
+        [Service] IAggregatorQueryService aggregatorQueryService,
         [Service] IGovernanceApi governanceApi
     )
     {
-        var currentEpoch = (await governanceApi.GetSuiSystemState()).Epoch;
-        var distributions = distributionQueryService.QueryDistributions(
-            new DistributionQueryOptions(ShareType)
+        await Task.CompletedTask;
+
+        var aggregators = aggregatorQueryService.QueryAggregators(
+            new AggregatorQueryOptions(ShareType)
         );
 
         // TODO: can we somehow make use of ulong here
-        return distributions.GroupBy(x => x.CoinType)
-            .Select(g => new Balance(g.Key, g.Sum(x => (long)x.RemainingAmount)))
+        return aggregators.GroupBy(x => x.CoinType)
+            .Select(g => new Balance(g.Key, g.Sum(x => (long)x.Balance)))
             .ToArray();
-    }
-
-    public Task<Balance[]> UserLockedBalance()
-    {
-        return null;
     }
 }

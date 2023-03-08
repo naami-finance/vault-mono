@@ -1,7 +1,7 @@
 ﻿using Naami.Distributor.Data;
-using Naami.Sdk;
+using Naami.Distributor.SDK;
 
-namespace Naami.Scheduler.Business;
+namespace Naami.Distributor.Indexer.Jobs;
 
 public class AddSuiCoinJob
 {
@@ -22,7 +22,7 @@ public class AddSuiCoinJob
             Decimals = SuiConstants.SuiDecimals,
             Struct = SuiConstants.SuiStruct,
             Module = SuiConstants.SuiModule,
-            PackageId = SuiConstants.SuiPackageId,
+            PackageId = SuiConstants.SuiPackageId.AsFormattedAddress(),
             ObjectType = SuiConstants.SuiCoinIdentifier,
             
             Description = "Official SUI Network token",

@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Naami.Distributor.Data;
+using Naami.Distributor.SDK;
 using Naami.Distributor.SDK.Models.Distributor.Events;
 using Naami.Distributor.SDK.Models.Share.Events;
 using Naami.SuiNet.Apis.Event;
@@ -48,8 +49,8 @@ public class IndexDistributionsJob
 
                 return new Distribution
                 {
-                    CoinType = Encoding.ASCII.GetString(distributionCreatedEvent.CoinType),
-                    ShareType = Encoding.ASCII.GetString(distributionCreatedEvent.ShareType),
+                    CoinType = Encoding.ASCII.GetString(distributionCreatedEvent.CoinType).AsFormattedAddress(),
+                    ShareType = Encoding.ASCII.GetString(distributionCreatedEvent.ShareType).AsFormattedAddress(),
                     Id = distributionCreatedEvent.DistributionId,
                     InitialAmount = distributionCreatedEvent.Amount,
                     RemainingAmount = distributionCreatedEvent.Amount,

@@ -2,5 +2,5 @@
 
 public interface ICoinTypeQueryService
 {
-    public IEnumerable<Api.Services.CoinType.CoinType> GetCoinTypesByIds(string[] id);
+    public IEnumerable<CoinType> GetCoinTypesByIds(string[] id);
 }

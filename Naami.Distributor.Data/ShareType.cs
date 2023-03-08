@@ -12,5 +12,4 @@ public class ShareType
 
     public string RegistryObjectId { get; set; }
     public string MetadataObjectId { get; set; }
-   
 }

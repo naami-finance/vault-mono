@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Naami.Api.Services.CoinType;
 using Naami.Distributor.Data;
 using Naami.SuiNet.Apis.CoinRead;
 
@@ -14,7 +13,7 @@ public class CoinTypeQueryService : ICoinTypeQueryService, IAsyncDisposable
         _vaultContext = vaultContext;
     }
 
-    public IEnumerable<Api.Services.CoinType.CoinType> GetCoinTypesByIds(string[] ids)
+    public IEnumerable<CoinType> GetCoinTypesByIds(string[] ids)
     {
         return _vaultContext.CoinTypes.AsEnumerable()
             .Where(x => ids.Contains(x.ObjectType))

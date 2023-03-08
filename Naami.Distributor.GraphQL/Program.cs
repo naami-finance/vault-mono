@@ -3,6 +3,7 @@
 using Microsoft.EntityFrameworkCore;
 using Naami.Distributor.Data;
 using Naami.Distributor.GraphQL;
+using Naami.Distributor.GraphQL.Services.Aggregator;
 using Naami.Distributor.GraphQL.Services.CoinType;
 using Naami.Distributor.GraphQL.Services.Distribution;
 using Naami.Distributor.GraphQL.Services.ShareType;
@@ -19,6 +20,7 @@ builder.Services
     .AddSingleton<IGovernanceApi, GovernanceApi>()
     .AddTransient<IShareTypeQueryService, ShareTypeMockQueryService>()
     .AddTransient<IDistributionQueryService, DistributionMockQueryService>()
+    .AddTransient<IAggregatorQueryService, AggregatorMockQueryService>()
     .AddTransient<ICoinTypeQueryService, CoinTypeMockQueryService>()
     ;
 
@@ -48,6 +50,7 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+app.UseCors();
 app.MapGraphQL(PathString.Empty);
 app.Run();
 

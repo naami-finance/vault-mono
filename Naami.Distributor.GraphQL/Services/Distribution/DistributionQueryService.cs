@@ -22,7 +22,7 @@ public class DistributionQueryService : IDistributionQueryService
             distributions = distributions.Where(x => x.ShareType == queryOptions.ShareType);
 
         if (queryOptions.EpochGt.HasValue)
-            distributions = distributions.Where(x => x.CreatedAt > queryOptions.EpochGt.Value);
+            distributions = distributions.Where(x => x.CreatedAt < queryOptions.EpochGt.Value);
 
         if (queryOptions.EpochLt.HasValue)
             distributions = distributions.Where(x => x.CreatedAt > queryOptions.EpochLt.Value);

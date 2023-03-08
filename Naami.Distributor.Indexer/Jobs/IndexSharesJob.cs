@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Naami.Distributor.Data;
+using Naami.Distributor.SDK;
 using Naami.Distributor.SDK.Models.Share.Events;
 using Naami.SuiNet.Apis.Event;
 using Naami.SuiNet.Apis.Event.Query;
@@ -43,10 +44,6 @@ public class IndexSharesJob
         {
             var shareTypes = eventsBatch.Select((ev, eventIndex) =>
             {
-                var nextId = eventIndex + 1 >= eventsBatch.Length
-                    ? null
-                    : eventsBatch[eventIndex + 1].Id;
-
                 var shareCreatedEvent = ev.Event.MoveEvent!.Fields.FromObjectDictionary<ShareCreated>();
 
                 return new ShareType
@@ -56,7 +53,7 @@ public class IndexSharesJob
                     TotalSupply = shareCreatedEvent.TotalSupply,
                     MetadataObjectId = shareCreatedEvent.MetadataId,
                     RegistryObjectId = shareCreatedEvent.RegistryId,
-                    ObjectType = Encoding.ASCII.GetString(shareCreatedEvent.Type),
+                    ObjectType = Encoding.ASCII.GetString(shareCreatedEvent.Type).AsFormattedAddress(),
                 };
             }).Where(x => _vaultContext.ShareTypes.All(s => s.ObjectType != x.ObjectType));
 

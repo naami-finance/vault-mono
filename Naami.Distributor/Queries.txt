@@ -1,5 +1,0 @@
-- My Vaults
-    - Claimable (contains Distribution i've not claimed)
-    
-    
-    
