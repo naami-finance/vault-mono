@@ -6,7 +6,8 @@ public class ShareTypeMockQueryService : IShareTypeQueryService
     {
         return new List<ShareType>()
         {
-            new("0x0::mock::MOCK", "Mock Share")
+            new("0x0::mock::MOCK", "Mock Share"),
+            new("0x0::tom::TOM", "Toms Share"),
         }.AsQueryable();
     }
 }
